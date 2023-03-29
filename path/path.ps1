@@ -1,5 +1,5 @@
 function Add-ToGlobalPath([string] $newString, [string] $pathTarget="User") {  
-  if ($pathTarget.ToUpperInvariant() -ne "MACHINE" -or $pathTarget.ToUpperInvariant() -ne "USER") {
+  if ($pathTarget.ToUpperInvariant() -ne "MACHINE" -and $pathTarget.ToUpperInvariant() -ne "USER") {
     throw "The given pathTarget ($pathTarget) was invalid.";
   }
 
@@ -11,7 +11,7 @@ function Add-ToGlobalPath([string] $newString, [string] $pathTarget="User") {
   $machinePath = [System.Environment]::GetEnvironmentVariable("PATH", "MACHINE");
   $userPath = [System.Environment]::GetEnvironmentVariable("PATH", "USER");
 
-  if ($machinePath.EndsWith(";") == $false) {
+  if ($machinePath.EndsWith(";") -eq $false) {
     $machinePath = $machinePath + ";";
   }
 

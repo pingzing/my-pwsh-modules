@@ -5,13 +5,15 @@ $rustupFunctions = @(Get-ChildItem -Path $PSScriptRoot/rustup/*.ps1);
 $networkFunctions = @(Get-ChildItem -Path $PSScriptRoot/network/*.ps1);
 $dotnetFunctions = @(Get-ChildItem -Path $PSScriptRoot/dotnet/*.ps1);
 $workFunctions = @(Get-ChildItem -Path $PSScriptRoot/work/*.ps1);
+$shellFunctions = @(Get-ChildItem -Path $PSScriptRoot/shell/*.ps1);
 foreach ($child in 
             $pathFunctions + 
             $gitFunctions + 
             $rustupFunctions + 
             $networkFunctions + 
             $dotnetFunctions +
-            $workFunctions) {
+            $workFunctions +
+            $shellFunctions) {
     try {
         . $child.fullname
     }
@@ -31,7 +33,7 @@ function Start-Csi([string]$file) {
 }
 
 function Edit-Profile {
-    code (Get-Item $Profile).Directory.FullName;
+    code "$((Get-Item $Profile).Directory.FullName)";
 }
 
 # Relies on on the $SharedWslDir environment variable to already exist. It should be created manually
