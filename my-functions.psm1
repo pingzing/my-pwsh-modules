@@ -36,9 +36,8 @@ function Edit-Profile {
     code "$((Get-Item $Profile).Directory.FullName)";
 }
 
-# Relies on on the $SharedWslDir environment variable to already exist. It should be created manually
 function Edit-SharedScripts {
-    code "$env:SharedWslDir/.powershell/modules"
+    code $PSScriptRoot;
 }
 
 # Deals with insane powershell string-escaping requirements when invoking native applications.
