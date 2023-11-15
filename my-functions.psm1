@@ -6,6 +6,7 @@ $networkFunctions = @(Get-ChildItem -Path $PSScriptRoot/network/*.ps1);
 $dotnetFunctions = @(Get-ChildItem -Path $PSScriptRoot/dotnet/*.ps1);
 $workFunctions = @(Get-ChildItem -Path $PSScriptRoot/work/*.ps1);
 $shellFunctions = @(Get-ChildItem -Path $PSScriptRoot/shell/*.ps1);
+$stringsFunctions = @(Get-ChildItem -Path $PSScriptRoot/strings/*.ps1);
 foreach ($child in 
             $pathFunctions + 
             $gitFunctions + 
@@ -13,7 +14,8 @@ foreach ($child in
             $networkFunctions + 
             $dotnetFunctions +
             $workFunctions +
-            $shellFunctions) {
+            $shellFunctions + 
+            $stringsFunctions) {
     try {
         . $child.fullname
     }
