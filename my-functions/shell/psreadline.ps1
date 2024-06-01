@@ -1,6 +1,8 @@
 Function Set-PSReadLineDefaults {
+
     # Make inline prediction actually readable
-    Set-PSReadLineOption -Colors @{ InlinePrediction = "`e[38;2;109;127;170m" }
+    # Set mode "3" (aka italic), then use "set RGB color" (38;2;r;g;b) to set color, and end with 'm' to indicate that the sequence is over
+    Set-PSReadLineOption -Colors @{ InlinePrediction = "`e[3;38;2;109;127;170m" }
 
     # `ForwardChar` accepts the entire suggestion text when the cursor is at the end of the line.
     # This custom binding makes `RightArrow` behave similarly - accepting the next word instead of the entire suggestion text.
