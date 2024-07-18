@@ -29,6 +29,12 @@ foreach ($child in
     }
 }
 
+# Remove the 'where' alias for Where-Object, so I can use where.exe without always typing the .exe
+# Do it twice, because there appear to somehow be leftovers if it's only called once.
+# Maybe it's a scope thing?
+Remove-Alias where -Force -Scope Global;
+Remove-Alias where -Force -Scope Global;
+
 function Start-Csi([string]$file = $null) {
     $vswherePaths = & "${Env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\csi.exe;
     if (-Not($vswherePaths)) {
