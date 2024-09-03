@@ -1,5 +1,12 @@
+enum RemoteKind {
+    GitHub
+    Bitbucket
+    AzureDevops
+    GitLab
+}
+
 # Sends current branch up to remote, then opens github page to create new PR.
-function New-PR([switch]$SuppressBrowser, [string]$TargetBranch = "master") {    
+function New-PR([switch]$SuppressBrowser, [string]$TargetBranch = "master", [RemoteKind]$Remote = [RemoteKind]::GitHub) {    
 
     if ($null -eq (Get-Command "git" -ErrorAction SilentlyContinue)) { 
         Write-Error "Cannot find 'git' in the currently-loaded PATH.";
@@ -16,29 +23,42 @@ function New-PR([switch]$SuppressBrowser, [string]$TargetBranch = "master") {
         $gitRemoteUrl = Invoke-Command -ScriptBlock { git config --get remote.origin.url };
         $atSymbolIndex = $gitRemoteUrl.IndexOf("@");
         
+        [string] $httpRemoteUrl = $null;
         # GitHub
-        $httpRemoteUrl = $gitRemoteUrl.Substring($atSymbolIndex + 1).Replace(":", "/").Replace(".git", "");
-        $httpRemoteUrl = "https://www." + $httpRemoteUrl + "/compare/$($TargetBranch)...$($currentBranchName)?expand=1";
+        if ($Remote -eq [RemoteKind]::GitHub) {
+            $httpRemoteUrl = $gitRemoteUrl.Substring($atSymbolIndex + 1).Replace(":", "/").Replace(".git", "");
+            $httpRemoteUrl = "https://www." + $httpRemoteUrl + "/compare/$($TargetBranch)...$($currentBranchName)?expand=1";
+        }        
 
         # Bitbucket
-        # $urlSegments = $gitRemoteUrl.Substring($atSymbolIndex + 1).Replace(".git", "").Split("/");
-        # $base = $urlSegments[0];
-        # $teamName = $urlSegments[1];
-        # $projectName = $urlSegments[2];
-        # $encodedTargetBranch = [System.Web.HTTPUtility]::UrlEncode("refs/heads/$TargetBranch");
-        # $encodedSourceBranch = [System.Web.HTTPUTility]::UrlEncode("refs/heads/$currentBranchName");
-        # $httpRemoteUrl = "https://$($base)/projects/$($teamName)/repos/$($projectName)/pull-requests?create&targetBranch=$($encodedTargetBranch)&sourceBranch=$($encodedSourceBranch)";
+        if ($Remote -eq [RemoteKind]::Bitbucket) {
+            $urlSegments = $gitRemoteUrl.Substring($atSymbolIndex + 1).Replace(".git", "").Split("/");
+            $base = $urlSegments[0];
+            $teamName = $urlSegments[1];
+            $projectName = $urlSegments[2];
+            $encodedTargetBranch = [System.Web.HTTPUtility]::UrlEncode("refs/heads/$TargetBranch");
+            $encodedSourceBranch = [System.Web.HTTPUTility]::UrlEncode("refs/heads/$currentBranchName");
+            $httpRemoteUrl = "https://$($base)/projects/$($teamName)/repos/$($projectName)/pull-requests?create&targetBranch=$($encodedTargetBranch)&sourceBranch=$($encodedSourceBranch)";
+        }
 
         # Azure Devops
-        # if ($gitRemoteUrl.StartsWith("http") -or $gitRemoteUrl.StartsWith("https")) {
-        #     $httpRemoteUrl = "$($gitRemoteUrl)/pullrequestcreate?sourceRef=$($currentBranchName)&targetRef=$($TargetBranch)";
-        # }
-        # else {
-        #     $urlSegments = $gitRemoteUrl.Substring($atSymbolIndex + 1).Split("/");
-        #     $base = $urlSegments[1].ToLower();
-        #     $repoName = $urlSegments[3];
-        #     $httpRemoteUrl = "http://$($base).visualstudio.com/platform/_git/$($repoName)/pullrequestcreate?sourceRef=$($currentBranchName)&targetRef=$($TargetBranch)";
-        # }  
+        if ($Remote -eq [RemoteKind]::AzureDevops) {
+            if ($gitRemoteUrl.StartsWith("http") -or $gitRemoteUrl.StartsWith("https")) {
+                $httpRemoteUrl = "$($gitRemoteUrl)/pullrequestcreate?sourceRef=$($currentBranchName)&targetRef=$($TargetBranch)";
+            }
+            else {
+                $urlSegments = $gitRemoteUrl.Substring($atSymbolIndex + 1).Split("/");
+                $base = $urlSegments[1].ToLower();
+                $repoName = $urlSegments[3];
+                $httpRemoteUrl = "http://$($base).visualstudio.com/platform/_git/$($repoName)/pullrequestcreate?sourceRef=$($currentBranchName)&targetRef=$($TargetBranch)";
+            }  
+        }
+
+        # GitLab
+        if ($Remote -eq [RemoteKind]::GitLab) {
+            $httpRemoteUrl = $gitRemoteUrl.Substring($atSymbolIndex + 1).Replace(":", "/").Replace(".git", "");
+            $httpRemoteUrl = "https://" + $httpRemoteUrl + "/-/merge_requests/new?merge_request[source_branch]=$($currentBranchName)&[target_branch]=$($TargetBranch)";
+        }
         
         Write-Host "Opening browser to: $httpRemoteUrl";
         if ($PSVersionTable.Platform -eq "Unix") {
@@ -53,7 +73,8 @@ function New-PR([switch]$SuppressBrowser, [string]$TargetBranch = "master") {
             else {
                 Start-Process nohup $httpRemoteUrl
             }
-        } else {
+        }
+        else {
             Start-Process $httpRemoteUrl;
         }
     }
