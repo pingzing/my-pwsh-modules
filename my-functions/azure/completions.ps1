@@ -1,4 +1,5 @@
-if ($null -eq (Get-Command "az" -ErrorAction SilentlyContinue)) {    
+if ($null -eq (Get-Command "az" -ErrorAction SilentlyContinue)) {
+    $global:Error.RemoveAt($global:Error.Count - 1);
     return;
 }
 
